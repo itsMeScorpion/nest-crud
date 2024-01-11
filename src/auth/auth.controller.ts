@@ -8,11 +8,13 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
+import { ApiAcceptedResponse, ApiBadRequestResponse } from '@nestjs/swagger';
 // import { User } from '../models/signup.entity';
 
 @Controller('auth')
@@ -21,12 +23,23 @@ export class AuthController {
 
   @Get('users')
   @HttpCode(200)
-  listAllUsers() {
-    return this.authService.getAllUsers();
+  async listAllUsers(
+    @Query('name') name: string,
+    @Query('email') email: string,
+    @Query('search') search: string,
+  ) {
+    return await this.authService.getAllUsers(name, email, search);
+  }
+
+  @Get('users/:id')
+  async listUser(@Param('id', ParseIntPipe) id: number) {
+    return await this.authService.getUser(id);
   }
 
   @Post('users')
   @UsePipes(ValidationPipe)
+  @ApiAcceptedResponse({ description: 'User Created Successfully' })
+  @ApiBadRequestResponse({ description: 'User Cannot be Created.Try Again!!' })
   async createUser(@Body() data: SignupDto) {
     return await this.authService.postUser(data);
   }
